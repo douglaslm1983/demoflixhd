@@ -199,44 +199,42 @@ function SearchTab({ apiKey, already, addTitle, streamProps }) {
       {error && <p className="mb-4 text-sm text-red-500">{error}</p>}
 
       {results.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 max-h-[420px] overflow-y-auto pr-1">
+        <div className="card divide-y divide-dark-100 dark:divide-dark-800 max-h-[420px] overflow-y-auto">
           {results.map((item) => {
             const done = already(media, item.id)
             return (
-              <div key={item.id} className="card overflow-hidden">
-                <div className="aspect-[2/3] bg-dark-100 dark:bg-dark-800">
+              <div key={item.id} className="flex items-center gap-3 p-2.5 hover:bg-dark-50 dark:hover:bg-dark-800/50 transition-colors">
+                <div className="w-10 h-14 rounded shrink-0 bg-dark-100 dark:bg-dark-800 overflow-hidden">
                   {item.poster_path ? (
                     <img
-                      src={tmdbImage(item.poster_path, 'w342')}
+                      src={tmdbImage(item.poster_path, 'w185')}
                       alt={item.title || item.name}
                       loading="lazy"
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full grid place-items-center">
-                      <img src={posterPlaceholder(item.id, item.title || item.name)} alt="" className="w-full h-full object-cover" />
-                    </div>
+                    <img src={posterPlaceholder(item.id, item.title || item.name)} alt="" className="w-full h-full object-cover" />
                   )}
                 </div>
-                <div className="p-3">
-                  <p className="font-semibold text-sm truncate">{media === 'movie' ? item.title : item.name}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm truncate">{media === 'movie' ? item.title : item.name}</p>
                   <p className="text-xs text-dark-400 inline-flex items-center gap-1">
                     <Icon name="star" size={11} className="text-yellow-500" />
                     {Number(item.vote_average || 0).toFixed(1)} • {String(item.release_date || item.first_air_date || '').slice(0, 4) || '-'}
                   </p>
-                  <button
-                    onClick={() => importOne(item)}
-                    disabled={busyId === item.id}
-                    className={`mt-3 w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
-                      done
-                        ? 'bg-emerald-500/10 text-emerald-500 cursor-default'
-                        : 'bg-primary-500 text-white hover:bg-primary-600'
-                    }`}
-                  >
-                    <Icon name={done ? 'check' : 'plus'} size={13} />
-                    {busyId === item.id ? 'Importando...' : done ? 'Já adicionado' : 'Adicionar'}
-                  </button>
                 </div>
+                <button
+                  onClick={() => importOne(item)}
+                  disabled={busyId === item.id}
+                  className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                    done
+                      ? 'bg-emerald-500/10 text-emerald-500 cursor-default'
+                      : 'bg-primary-500 text-white hover:bg-primary-600'
+                  }`}
+                >
+                  <Icon name={done ? 'check' : 'plus'} size={13} />
+                  {busyId === item.id ? 'Importando...' : done ? 'Já adicionado' : 'Adicionar'}
+                </button>
               </div>
             )
           })}
