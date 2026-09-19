@@ -21,6 +21,7 @@ const INITIAL = {
   featured: false,
   poster: '',
   backdrop: '',
+  streamUrl: '',
 }
 
 const inputCls =
@@ -51,6 +52,7 @@ export default function TitleFormModal({ type = 'movie', initial, onClose, onSav
       featured: !!initial.featured,
       poster: initial.poster || '',
       backdrop: initial.backdrop || '',
+      streamUrl: initial.streamUrl || '',
     }
   })
   const [error, setError] = useState('')
@@ -222,6 +224,15 @@ export default function TitleFormModal({ type = 'movie', initial, onClose, onSav
 
             {fieldGroup('Elenco (separado por vírgula)', (
               <input className={inputCls} value={form.cast} onChange={(e) => set({ cast: e.target.value })} placeholder="Ex.: Al Pacino, Marlon Brando" />
+            ), true)}
+
+            {fieldGroup('URL de reprodução', (
+              <div>
+                <input className={inputCls} value={form.streamUrl} onChange={(e) => set({ streamUrl: e.target.value })} placeholder="Ex.: https://www.youtube.com/embed/xxxx ou {season}/{episode}" />
+                <p className="mt-1.5 text-xs text-dark-400">
+                  Link do vídeo/trailer. Para séries use as marcas <code className="px-1 py-0.5 rounded bg-dark-100 dark:bg-dark-800">{'{season}'}</code> e <code className="px-1 py-0.5 rounded bg-dark-100 dark:bg-dark-800">{'{episode}'}</code> na URL para troca de episódios no player.
+                </p>
+              </div>
             ), true)}
           </div>
 

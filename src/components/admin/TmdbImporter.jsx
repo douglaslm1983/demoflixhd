@@ -4,14 +4,15 @@ import { useData } from '../../context/DataContext'
 import { tmdbSearch, tmdbPopular, tmdbDetails, toTitle, tmdbImage } from '../../utils/tmdb'
 import { posterPlaceholder } from '../../utils/placeholder'
 
-async function withDetails(key, media, item) {
+async function withDetails(key, media, item, streamUrl) {
   const d = await tmdbDetails(key, media, item.id)
-  return toTitle(d, media)
+  return toTitle(d, media, streamUrl ? { streamUrl } : {})
 }
 
 export default function TmdbImporter({ apiKey }) {
   const { titles, addTitle } = useData()
   const [tab, setTab] = useState('search')
+  const [streamUrlTemplate, setStreamUrlTemplate] = useState('')
 
   const existing = useMemo(() => new Set(titles.map((t) => `${t.tmdb?.media}:${t.tmdb?.id}`)), [titles])
   const already = useCallback(
@@ -40,6 +41,22 @@ export default function TmdbImporter({ apiKey }) {
         </a>
       </div>
 
+      <div className="mb-4">
+        <label className="block text-sm font-medium mb-1.5">
+          URL de reprodução (opcional) <span className="text-dark-400 font-normal">— aplicada aos títulos importados</span>
+        </label>
+        <input
+          value={streamUrlTemplate}
+          onChange={(e) => setStreamUrlTemplate(e.target.value)}
+          placeholder="Ex.: https://exemplo.com/video/{season}/{episode} ou trailer do YouTube"
+          className="input"
+        />
+        <p className="mt-1 text-xs text-dark-400">
+          Use <code className="px-1 py-0.5 rounded bg-dark-100 dark:bg-dark-800">{'{season}'}</code> e{' '}
+          <code className="px-1 py-0.5 rounded bg-dark-100 dark:bg-dark-800">{'{episode}'}</code> para séries.
+        </p>
+      </div>
+
       <div className="grid grid-cols-2 gap-2 mb-5 p-1 rounded-xl bg-dark-100 dark:bg-dark-800">
         {[
           { key: 'search', label: 'Busca manual', icon: 'search' },
@@ -60,15 +77,15 @@ export default function TmdbImporter({ apiKey }) {
       </div>
 
       {tab === 'search' ? (
-        <SearchTab apiKey={apiKey} already={already} addTitle={addTitle} />
+        <SearchTab apiKey={apiKey} already={already} addTitle={addTitle} streamUrl={streamUrlTemplate} />
       ) : (
-        <BulkTab apiKey={apiKey} already={already} addTitle={addTitle} />
+        <BulkTab apiKey={apiKey} already={already} addTitle={addTitle} streamUrl={streamUrlTemplate} />
       )}
     </div>
   )
 }
 
-function SearchTab({ apiKey, already, addTitle }) {
+function SearchTab({ apiKey, already, addTitle, streamUrl }) {
   const [media, setMedia] = useState('movie')
   const [q, setQ] = useState('')
   const [results, setResults] = useState([])
@@ -104,7 +121,7 @@ function SearchTab({ apiKey, already, addTitle }) {
     }
     setBusyId(item.id)
     try {
-      const entry = await withDetails(apiKey, media, item)
+      const entry = await withDetails(apiKey, media, item, streamUrl)
       addTitle(entry)
       notify(`"${entry.title}" adicionado ao catálogo!`)
     } catch (err) {
@@ -210,7 +227,7 @@ function SearchTab({ apiKey, already, addTitle }) {
   )
 }
 
-function BulkTab({ apiKey, already, addTitle }) {
+function BulkTab({ apiKey, already, addTitle, streamUrl }) {
   const [media, setMedia] = useState('movie')
   const [page, setPage] = useState(1)
   const [items, setItems] = useState([])
@@ -272,7 +289,7 @@ function BulkTab({ apiKey, already, addTitle }) {
     let fail = 0
     for (const item of pending) {
       try {
-        const entry = await withDetails(apiKey, media, item)
+        const entry = await withDetails(apiKey, media, item, streamUrl)
         addTitle(entry)
         ok += 1
       } catch {

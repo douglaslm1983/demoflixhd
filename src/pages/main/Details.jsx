@@ -6,6 +6,7 @@ import { MetaBadge, RatingStars } from '../../components/Rating'
 import Carousel from '../../components/Carousel'
 import DetailModal from '../../components/DetailModal'
 import WatchModal from '../../components/WatchModal'
+import StreamPlayer from '../../components/StreamPlayer'
 import { backdropPlaceholder, posterPlaceholder } from '../../utils/placeholder'
 
 export default function Details() {
@@ -105,6 +106,12 @@ export default function Details() {
               {inList ? 'Na minha lista' : 'Adicionar à minha lista'}
             </button>
           </div>
+
+          {title.streamUrl && (
+            <div className="mb-8">
+              <StreamPlayer title={title} />
+            </div>
+          )}
 
           <div className="mb-8">
             <h2 className="text-lg font-display font-bold mb-3">Sinopse</h2>
