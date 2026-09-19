@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { NavLink, Outlet, Link, useNavigate } from 'react-router-dom'
 import Icon from './Icon'
+import BackToTop from './BackToTop'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { avatarPlaceholder } from '../utils/placeholder'
@@ -116,6 +117,7 @@ export default function AdminLayout() {
           <Outlet />
         </main>
       </div>
+      <BackToTop />
     </div>
   )
 }

@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import Navbar from './Navbar'
 import Footer from './Footer'
+import BackToTop from './BackToTop'
 import Icon from './Icon'
 import { useData } from '../context/DataContext'
 
@@ -32,6 +33,7 @@ export default function Layout() {
         )}
       </main>
       <Footer />
+      <BackToTop />
     </div>
   )
 }
