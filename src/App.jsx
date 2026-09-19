@@ -10,6 +10,7 @@ import Search from './pages/main/Search'
 import MyList from './pages/main/MyList'
 import AdminLogin from './pages/admin/Login'
 import AdminDashboard from './pages/admin/Dashboard'
+import AdminImport from './pages/admin/Import'
 import AdminMovies from './pages/admin/Movies'
 import AdminSeries from './pages/admin/Series'
 import AdminUsers from './pages/admin/Users'
@@ -59,6 +60,7 @@ function App() {
         </PrivateRoute>
       }>
         <Route index element={<AdminDashboard />} />
+        <Route path="importar" element={<AdminImport />} />
         <Route path="filmes" element={<AdminMovies />} />
         <Route path="series" element={<AdminSeries />} />
         <Route path="usuarios" element={<AdminUsers />} adminOnly />

@@ -1,8 +1,8 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useData } from '../../context/DataContext'
 import { useTheme } from '../../context/ThemeContext'
 import Icon from '../../components/Icon'
-import TmdbImporter from '../../components/admin/TmdbImporter'
 import { tmdbRequest } from '../../utils/tmdb'
 
 export default function AdminSettings() {
@@ -141,7 +141,7 @@ export default function AdminSettings() {
         </section>
 
         {/* TMDB */}
-        <section className="card p-6 animate-slide-up">
+        <section id="tmdb" className="card p-6 animate-slide-up">
           <h2 className="text-lg font-display font-bold flex items-center gap-2 mb-1">
             <Icon name="upload" size={18} className="text-primary-500" /> Integração TMDB
           </h2>
@@ -204,8 +204,16 @@ export default function AdminSettings() {
           </form>
 
           {settings.tmdbKey && (
-            <div className="mt-6 pt-6 border-t border-dark-100 dark:border-dark-800">
-              <TmdbImporter apiKey={settings.tmdbKey} />
+            <div className="mt-4 flex items-center justify-between gap-3 p-4 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+              <p className="text-sm inline-flex items-center gap-2">
+                <Icon name="check" size={16} /> Chave TMDB configurada.
+              </p>
+              <Link
+                to="/admin/importar"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 text-white text-xs font-semibold hover:bg-emerald-600 transition-colors shrink-0"
+              >
+                <Icon name="upload" size={13} /> Importar conteúdo
+              </Link>
             </div>
           )}
         </section>

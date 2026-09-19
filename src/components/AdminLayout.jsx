@@ -8,6 +8,7 @@ import Logo from './Logo'
 
 const NAV = [
   { to: '/admin', label: 'Dashboard', icon: 'layout', end: true },
+  { to: '/admin/importar', label: 'Importar do TMDB', icon: 'upload' },
   { to: '/admin/filmes', label: 'Filmes', icon: 'film' },
   { to: '/admin/series', label: 'Séries', icon: 'tv' },
   { to: '/admin/usuarios', label: 'Usuários', icon: 'users' },
