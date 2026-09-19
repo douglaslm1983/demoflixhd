@@ -13,7 +13,7 @@ export default function WatchModal({ open, onClose, title }) {
   const { isAuthenticated } = useAuth()
 
   const toggle = () => {
-    if (!isAuthenticated) return navigate('/admin/login')
+    if (!isAuthenticated) return navigate('/entrar')
     toggleMyList(title.id)
   }
 

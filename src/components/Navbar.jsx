@@ -140,6 +140,15 @@ export default function Navbar() {
               </div>
             )}
 
+            {!isAuthenticated && (
+              <Link
+                to="/entrar"
+                className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 transition-colors"
+              >
+                <Icon name="log-in" size={15} /> Entrar
+              </Link>
+            )}
+
             <Link
               to="/minha-lista"
               className="relative p-2.5 rounded-full hover:bg-dark-100 dark:hover:bg-dark-800 transition-colors"
@@ -196,6 +205,24 @@ export default function Navbar() {
                 {n.label}
               </NavLink>
             ))}
+            {!isAuthenticated && (
+              <>
+                <Link
+                  to="/entrar"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-dark-600 dark:text-dark-300 hover:bg-dark-100 dark:hover:bg-dark-800"
+                >
+                  <Icon name="log-in" size={16} /> Entrar
+                </Link>
+                <Link
+                  to="/criar-conta"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-primary-500 bg-primary-500/10"
+                >
+                  <Icon name="user-plus" size={16} /> Criar conta
+                </Link>
+              </>
+            )}
           </nav>
           <p className="mt-3 px-4 text-xs text-dark-500 dark:text-dark-400">{settings.tagline}</p>
         </div>

@@ -3,35 +3,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useData } from '../../context/DataContext'
 import Icon from '../../components/Icon'
 import { avatarPlaceholder, posterPlaceholder } from '../../utils/placeholder'
-
-function readAvatarFile(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onerror = reject
-    reader.onload = () => {
-      const img = new Image()
-      img.onload = () => {
-        try {
-          const canvas = document.createElement('canvas')
-          const size = 256
-          canvas.width = size
-          canvas.height = size
-          const ctx = canvas.getContext('2d')
-          const scale = Math.max(size / img.width, size / img.height)
-          const w = img.width * scale
-          const h = img.height * scale
-          ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h)
-          resolve(canvas.toDataURL('image/jpeg', 0.85))
-        } catch (err) {
-          reject(err)
-        }
-      }
-      img.onerror = reject
-      img.src = reader.result
-    }
-    reader.readAsDataURL(file)
-  })
-}
+import { readImageFile } from '../../utils/image'
 
 export default function AdminUsers() {
   const { users, user: currentUser, addUser, updateUser, deleteUser, resetUsers } = useAuth()
@@ -86,7 +58,7 @@ export default function AdminUsers() {
       return
     }
     try {
-      const dataUrl = await readAvatarFile(file)
+      const dataUrl = await readImageFile(file)
       setForm((f) => ({ ...f, avatar: dataUrl }))
       setError('')
     } catch {

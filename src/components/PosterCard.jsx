@@ -15,7 +15,7 @@ export default function PosterCard({ title, onMore, width = 'w-40 md:w-48' }) {
   const detail = () => navigate(`/detalhes/${title.type}/${title.id}`)
 
   const toggle = () => {
-    if (!isAuthenticated) return navigate('/admin/login')
+    if (!isAuthenticated) return navigate('/entrar')
     toggleMyList(title.id)
   }
 

@@ -24,7 +24,7 @@ export default function Details() {
 
   const toggle = () => {
     if (!isAuthenticated) {
-      navigate('/admin/login')
+      navigate('/entrar')
       return
     }
     toggleMyList(title.id)

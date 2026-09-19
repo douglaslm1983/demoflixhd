@@ -8,6 +8,8 @@ import Series from './pages/main/Series'
 import Details from './pages/main/Details'
 import Search from './pages/main/Search'
 import MyList from './pages/main/MyList'
+import Login from './pages/main/Login'
+import Register from './pages/main/Register'
 import AdminLogin from './pages/admin/Login'
 import AdminDashboard from './pages/admin/Dashboard'
 import AdminImport from './pages/admin/Import'
@@ -51,6 +53,9 @@ function App() {
         <Route path="detalhes/:type/:id" element={<Details />} />
         <Route path="*" element={<NotFound />} />
       </Route>
+
+      <Route path="/entrar" element={<Login />} />
+      <Route path="/criar-conta" element={<Register />} />
 
       <Route path="/admin/login" element={<AdminLogin />} />
 

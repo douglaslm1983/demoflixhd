@@ -31,8 +31,8 @@ export default function MyList() {
               <Icon name="film" size={16} /> Explorar catálogo
             </Link>
           ) : (
-            <Link to="/admin/login" className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary-500 text-white font-semibold hover:bg-primary-600">
-              <Icon name="user" size={16} /> Fazer login
+            <Link to="/entrar" className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary-500 text-white font-semibold hover:bg-primary-600">
+              <Icon name="log-in" size={16} /> Fazer login
             </Link>
           )}
         </div>
