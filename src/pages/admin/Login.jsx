@@ -12,7 +12,7 @@ export default function Login() {
   const { settings } = useData()
   const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
-  const [email, setEmail] = useState('admin@demoflix.com')
+  const [identifier, setIdentifier] = useState('admin')
   const [password, setPassword] = useState('admin123')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -22,7 +22,7 @@ export default function Login() {
     setError('')
     setLoading(true)
     try {
-      await login(email.trim(), password)
+      await login(identifier.trim(), password)
       navigate('/admin', { replace: true })
     } catch (err) {
       setError(err.message || 'Falha no login. Tente novamente.')
@@ -73,16 +73,15 @@ export default function Login() {
 
           <form onSubmit={submit} className="mt-8 space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-1.5">E-mail</label>
+              <label htmlFor="identifier" className="block text-sm font-medium mb-1.5">Nome de usuário</label>
               <input
-                id="email"
-                type="email"
+                id="identifier"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
                 className="input"
-                placeholder="seu@email.com"
-                autoComplete="email"
+                placeholder="Seu nome de usuário"
+                autoComplete="username"
               />
             </div>
             <div>
@@ -130,13 +129,13 @@ export default function Login() {
             </p>
             <div className="space-y-2">
               {[
-                { email: 'admin@demoflix.com', pass: 'admin123', role: 'Admin', color: 'bg-primary-500/15 text-primary-500' },
-                { email: 'user@demoflix.com', pass: 'user123', role: 'Usuário', color: 'bg-blue-500/15 text-blue-500' },
+                { login: 'admin', pass: 'admin123', role: 'Admin', color: 'bg-primary-500/15 text-primary-500' },
+                { login: 'user', pass: 'user123', role: 'Usuário', color: 'bg-blue-500/15 text-blue-500' },
               ].map((c) => (
-                <div key={c.email} className="flex items-center justify-between gap-2 text-sm flex-wrap">
+                <div key={c.login} className="flex items-center justify-between gap-2 text-sm flex-wrap">
                   <div className="flex items-center gap-2 min-w-0">
-                    <img src={avatarPlaceholder(c.email)} alt="" className="w-7 h-7 rounded-full hidden sm:block" />
-                    <span className="truncate text-dark-600 dark:text-dark-300">{c.email}</span>
+                    <img src={avatarPlaceholder(c.login)} alt="" className="w-7 h-7 rounded-full hidden sm:block" />
+                    <span className="truncate text-dark-600 dark:text-dark-300">{c.login}</span>
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${c.color}`}>{c.role}</span>
                   </div>
                   <code className="text-xs text-dark-400 select-all">{c.pass}</code>

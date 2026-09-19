@@ -3,12 +3,19 @@ import { useNavigate } from 'react-router-dom'
 import Icon from './Icon'
 import StreamPlayer from './StreamPlayer'
 import { useData } from '../context/DataContext'
+import { useAuth } from '../context/AuthContext'
 
 export default function WatchModal({ open, onClose, title }) {
   const navigate = useNavigate()
   const [state, setState] = useState('idle')
   const [prevOpen, setPrevOpen] = useState(open)
   const { toggleMyList, isInMyList } = useData()
+  const { isAuthenticated } = useAuth()
+
+  const toggle = () => {
+    if (!isAuthenticated) return navigate('/admin/login')
+    toggleMyList(title.id)
+  }
 
   if (open !== prevOpen) {
     setPrevOpen(open)
@@ -114,7 +121,7 @@ export default function WatchModal({ open, onClose, title }) {
                 <Icon name="info" size={15} /> Ver detalhes
               </button>
               <button
-                onClick={() => toggleMyList(title.id)}
+                onClick={toggle}
                 className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-colors text-sm font-medium ${
                   isInMyList(title.id)
                     ? 'bg-primary-500 text-white'

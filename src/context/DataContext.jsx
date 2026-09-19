@@ -1,9 +1,10 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { SEED_TITLES, DEFAULT_SETTINGS, uid } from '../data/catalog'
+import { useAuth } from './AuthContext'
 
 const TITLES_KEY = 'demoflix_titles_v1'
-const MYLIST_KEY = 'demoflix_mylist_v1'
 const SETTINGS_KEY = 'demoflix_settings_v1'
+const EMPTY_LIST = []
 
 function load(key, fallback) {
   try {
@@ -25,17 +26,18 @@ function save(key, value) {
 const DataContext = createContext(null)
 
 export function DataProvider({ children }) {
+  const { user, toggleFavorite, removeFavoritesFor, clearAllFavorites } = useAuth()
   const [titles, setTitles] = useState(() => load(TITLES_KEY, SEED_TITLES))
-  const [myList, setMyList] = useState(() => load(MYLIST_KEY, []))
   const [settings, setSettings] = useState(() => ({ ...DEFAULT_SETTINGS, ...load(SETTINGS_KEY, {}) }))
 
   useEffect(() => save(TITLES_KEY, titles), [titles])
-  useEffect(() => save(MYLIST_KEY, myList), [myList])
   useEffect(() => save(SETTINGS_KEY, settings), [settings])
 
   const movies = titles.filter((t) => t.type === 'movie')
   const series = titles.filter((t) => t.type === 'series')
   const featured = titles.filter((t) => t.featured)
+
+  const myList = user?.favorites || EMPTY_LIST
 
   const getTitle = useCallback((type, id) => titles.find((t) => t.type === type && t.id === id), [titles])
 
@@ -76,14 +78,14 @@ export function DataProvider({ children }) {
 
   const deleteTitle = useCallback((id) => {
     setTitles((prev) => prev.filter((t) => t.id !== id))
-    setMyList((prev) => prev.filter((x) => x !== id))
-  }, [])
+    removeFavoritesFor([id])
+  }, [removeFavoritesFor])
 
   const deleteMany = useCallback((ids) => {
     const set = new Set(ids)
     setTitles((prev) => prev.filter((t) => !set.has(t.id)))
-    setMyList((prev) => prev.filter((x) => !set.has(x)))
-  }, [])
+    removeFavoritesFor(ids)
+  }, [removeFavoritesFor])
 
   const resetCatalog = useCallback(() => {
     setTitles(SEED_TITLES)
@@ -91,12 +93,15 @@ export function DataProvider({ children }) {
 
   const clearCatalog = useCallback(() => {
     setTitles([])
-    setMyList([])
-  }, [])
+    clearAllFavorites()
+  }, [clearAllFavorites])
 
-  const toggleMyList = useCallback((id) => {
-    setMyList((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
-  }, [])
+  const toggleMyList = useCallback(
+    (id) => {
+      toggleFavorite(id)
+    },
+    [toggleFavorite],
+  )
 
   const isInMyList = useCallback((id) => myList.includes(id), [myList])
 

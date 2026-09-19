@@ -19,7 +19,7 @@ export default function Dashboard() {
     { label: 'Séries', value: series.length, icon: 'tv', color: 'text-purple-500 bg-purple-500/10' },
     { label: 'Em destaque', value: featured.length, icon: 'trend', color: 'text-yellow-500 bg-yellow-500/10' },
     { label: 'Usuários', value: users.length, icon: 'users', color: 'text-emerald-500 bg-emerald-500/10' },
-    { label: 'Na minha lista', value: myList.length, icon: 'list', color: 'text-rose-500 bg-rose-500/10' },
+    { label: 'Minha lista', value: myList.length, icon: 'list', color: 'text-rose-500 bg-rose-500/10' },
   ]
 
   const recent = [...titles].sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt)).slice(0, 6)
@@ -131,7 +131,7 @@ export default function Dashboard() {
 
             <div className="card p-4">
               <p className="text-xs font-semibold uppercase tracking-wider text-dark-400 mb-2">Manutenção</p>
-              <p className="text-sm text-dark-500 dark:text-dark-400 mb-3">{myListTitles.length} títulos na minha lista de usuários do site.</p>
+              <p className="text-sm text-dark-500 dark:text-dark-400 mb-3">{myListTitles.length} títulos na sua lista pessoal.</p>
               <button
                 onClick={() => {
                   if (window.confirm('Restaurar o catálogo para os dados originais? Esta ação remove todas as alterações e adições.')) {

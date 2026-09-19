@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useData } from '../../context/DataContext'
+import { useAuth } from '../../context/AuthContext'
 import Icon from '../../components/Icon'
 import { MetaBadge, RatingStars } from '../../components/Rating'
 import Carousel from '../../components/Carousel'
@@ -12,12 +13,22 @@ import { backdropPlaceholder, posterPlaceholder } from '../../utils/placeholder'
 export default function Details() {
   const { type, id } = useParams()
   const { getTitle, titles, toggleMyList, isInMyList } = useData()
+  const { isAuthenticated } = useAuth()
+  const navigate = useNavigate()
   const title = getTitle(type, id)
   const [backdropImg, setBackdropImg] = useState('')
   const [posterImg, setPosterImg] = useState('')
   const [watchTitle, setWatchTitle] = useState(null)
   const [modalTitle, setModalTitle] = useState(null)
   const [expanded, setExpanded] = useState(false)
+
+  const toggle = () => {
+    if (!isAuthenticated) {
+      navigate('/admin/login')
+      return
+    }
+    toggleMyList(title.id)
+  }
 
   if (!title) {
     return (
@@ -95,7 +106,7 @@ export default function Details() {
               <Icon name="play" size={17} /> Assistir agora
             </button>
             <button
-              onClick={() => toggleMyList(title.id)}
+              onClick={toggle}
               className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold border transition-all active:scale-95 ${
                 inList
                   ? 'bg-primary-500/10 border-primary-500/40 text-primary-500'

@@ -1,17 +1,50 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import { useData } from '../../context/DataContext'
 import Icon from '../../components/Icon'
-import { avatarPlaceholder } from '../../utils/placeholder'
+import { avatarPlaceholder, posterPlaceholder } from '../../utils/placeholder'
+
+function readAvatarFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onerror = reject
+    reader.onload = () => {
+      const img = new Image()
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas')
+          const size = 256
+          canvas.width = size
+          canvas.height = size
+          const ctx = canvas.getContext('2d')
+          const scale = Math.max(size / img.width, size / img.height)
+          const w = img.width * scale
+          const h = img.height * scale
+          ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h)
+          resolve(canvas.toDataURL('image/jpeg', 0.85))
+        } catch (err) {
+          reject(err)
+        }
+      }
+      img.onerror = reject
+      img.src = reader.result
+    }
+    reader.readAsDataURL(file)
+  })
+}
 
 export default function AdminUsers() {
   const { users, user: currentUser, addUser, updateUser, deleteUser, resetUsers } = useAuth()
+  const { titles } = useData()
   const [q, setQ] = useState('')
   const [openForm, setOpenForm] = useState(false)
   const [editing, setEditing] = useState(null)
   const [deleting, setDeleting] = useState(null)
-  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'user' })
+  const [viewing, setViewing] = useState(null)
+  const [form, setForm] = useState({ username: '', name: '', email: '', password: '', role: 'user', avatar: null })
   const [error, setError] = useState('')
   const [toast, setToast] = useState('')
+  const fileRef = useRef(null)
 
   const notify = (msg) => {
     setToast(msg)
@@ -20,41 +53,93 @@ export default function AdminUsers() {
 
   const filtered = users.filter(
     (u) =>
+      u.username?.toLowerCase().includes(q.toLowerCase()) ||
       u.name.toLowerCase().includes(q.toLowerCase()) ||
-      u.email.toLowerCase().includes(q.toLowerCase()),
+      u.email?.toLowerCase().includes(q.toLowerCase()),
   )
 
   const openAdd = () => {
     setEditing(null)
-    setForm({ name: '', email: '', password: '', role: 'user' })
+    setForm({ username: '', name: '', email: '', password: '', role: 'user', avatar: null })
     setError('')
     setOpenForm(true)
   }
 
   const openEdit = (u) => {
     setEditing(u)
-    setForm({ name: u.name, email: u.email, password: '', role: u.role })
+    setForm({
+      username: u.username || '',
+      name: u.name,
+      email: u.email || '',
+      password: '',
+      role: u.role,
+      avatar: u.avatar || null,
+    })
     setError('')
     setOpenForm(true)
   }
 
+  const handleAvatar = async (file) => {
+    if (!file) return
+    if (file.size > 4 * 1024 * 1024) {
+      setError('A imagem deve ter no máximo 4MB.')
+      return
+    }
+    try {
+      const dataUrl = await readAvatarFile(file)
+      setForm((f) => ({ ...f, avatar: dataUrl }))
+      setError('')
+    } catch {
+      setError('Não foi possível carregar a imagem.')
+    }
+    if (fileRef.current) fileRef.current.value = ''
+  }
+
   const save = () => {
-    if (!form.name.trim() || !form.email.trim()) {
-      setError('Preencha nome e e-mail.')
+    const username = form.username.trim()
+    if (!username) {
+      setError('Defina um nome de usuário.')
+      return
+    }
+    if (!form.name.trim()) {
+      setError('Preencha o nome.')
       return
     }
     if (!editing && !form.password.trim()) {
       setError('Defina uma senha.')
       return
     }
+    const dup = users.some(
+      (u) =>
+        u.id !== editing?.id &&
+        (u.username?.toLowerCase() === username.toLowerCase() ||
+          (form.email.trim() && u.email?.toLowerCase() === form.email.trim().toLowerCase())),
+    )
+    if (dup) {
+      setError('Já existe um usuário com este nome de usuário ou e-mail.')
+      return
+    }
     try {
       if (editing) {
-        const patch = { name: form.name.trim(), role: form.role }
+        const patch = {
+          username: username.toLowerCase(),
+          name: form.name.trim(),
+          email: form.email.trim(),
+          role: form.role,
+          avatar: form.avatar,
+        }
         if (form.password.trim()) patch.password = form.password.trim()
         updateUser(editing.id, patch)
         notify('Usuário atualizado.')
       } else {
-        addUser(form)
+        addUser({
+          username,
+          name: form.name,
+          email: form.email,
+          password: form.password,
+          role: form.role,
+          avatar: form.avatar,
+        })
         notify('Usuário criado com sucesso.')
       }
       setOpenForm(false)
@@ -76,6 +161,16 @@ export default function AdminUsers() {
   }
 
   const adminCount = users.filter((u) => u.role === 'admin').length
+
+  const viewingFavorites = (viewing?.favorites || [])
+    .map((id) => titles.find((t) => t.id === id))
+    .filter(Boolean)
+
+  const removeFavorite = (titleId) => {
+    updateUser(viewing.id, { favorites: (viewing.favorites || []).filter((id) => id !== titleId) })
+    setViewing((v) => ({ ...v, favorites: (v.favorites || []).filter((id) => id !== titleId) }))
+    notify('Título removido dos favoritos.')
+  }
 
   return (
     <div>
@@ -108,6 +203,7 @@ export default function AdminUsers() {
               <tr className="bg-dark-50 dark:bg-dark-800/50 text-dark-500 dark:text-dark-400 text-xs uppercase tracking-wider">
                 <th className="px-4 py-3 font-semibold">Usuário</th>
                 <th className="px-4 py-3 font-semibold hidden sm:table-cell">Função</th>
+                <th className="px-4 py-3 font-semibold hidden md:table-cell">Favoritos</th>
                 <th className="px-4 py-3 font-semibold hidden md:table-cell">Criado em</th>
                 <th className="px-4 py-3 font-semibold text-right">Ações</th>
               </tr>
@@ -120,17 +216,26 @@ export default function AdminUsers() {
                       <img src={u.avatar || avatarPlaceholder(u.name)} alt={u.name} className="w-10 h-10 rounded-full object-cover shrink-0" />
                       <div className="min-w-0">
                         <p className="font-semibold flex items-center gap-2">
-                          <span className="truncate">{u.name}</span>
+                          <span className="truncate">@{u.username || u.email}</span>
                           {u.id === currentUser?.id && (
                             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary-500/10 text-primary-500 uppercase">você</span>
                           )}
                         </p>
-                        <p className="text-xs text-dark-400 truncate">{u.email}</p>
+                        <p className="text-xs text-dark-400 truncate">{u.name}</p>
                       </div>
                     </div>
                   </td>
                   <td className="px-4 py-3 hidden sm:table-cell">
-                    <SelectRole value={u.role} onChange={(role) => { updateUser(u.id, { role }); notify(`Função de "${u.name}" alterada para ${role === 'admin' ? 'administrador' : 'usuário'}.`) }} />
+                    <SelectRole value={u.role} onChange={(role) => { updateUser(u.id, { role }); notify(`Função de "${u.username || u.name}" alterada para ${role === 'admin' ? 'administrador' : 'usuário'}.`) }} />
+                  </td>
+                  <td className="px-4 py-3 hidden md:table-cell text-dark-400">
+                    <button
+                      onClick={() => setViewing(u)}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-dark-100 dark:bg-dark-800 hover:bg-primary-500/15 hover:text-primary-500 transition-colors"
+                      title="Ver favoritos"
+                    >
+                      <Icon name="list" size={13} /> {u.favorites.length}
+                    </button>
                   </td>
                   <td className="px-4 py-3 hidden md:table-cell text-dark-400">
                     {new Date(u.createdAt).toLocaleDateString('pt-BR')}
@@ -178,7 +283,7 @@ export default function AdminUsers() {
         </button>
       </div>
 
-      {/* Modal */}
+      {/* Modal formulário */}
       {openForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in" role="dialog" aria-modal="true">
           <div className="absolute inset-0 bg-dark-950/80 backdrop-blur-sm" onClick={() => setOpenForm(false)} />
@@ -191,11 +296,15 @@ export default function AdminUsers() {
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1.5">Nome</label>
+                <label className="block text-sm font-medium mb-1.5">Nome de usuário</label>
+                <input className="input" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} placeholder="Ex.: maria.silva" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Nome completo</label>
                 <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ex.: Maria Silva" />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1.5">E-mail</label>
+                <label className="block text-sm font-medium mb-1.5">E-mail <span className="text-dark-400 font-normal">(opcional)</span></label>
                 <input type="email" className="input" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="exemplo@email.com" />
               </div>
               <div>
@@ -208,6 +317,41 @@ export default function AdminUsers() {
                   <option value="user">Usuário</option>
                   <option value="admin">Administrador</option>
                 </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Imagem do perfil</label>
+                <div className="flex items-center gap-4">
+                  <img
+                    src={form.avatar || avatarPlaceholder(form.username || form.name || 'Novo usuário')}
+                    alt="Avatar"
+                    className="w-16 h-16 rounded-full object-cover ring-2 ring-dark-200 dark:ring-dark-700"
+                  />
+                  <div className="space-y-1">
+                    {form.avatar && (
+                      <button
+                        type="button"
+                        onClick={() => setForm({ ...form, avatar: null })}
+                        className="block text-xs text-red-500 hover:underline"
+                      >
+                        Remover imagem
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => fileRef.current?.click()}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-dark-100 dark:bg-dark-800 text-xs font-semibold hover:bg-primary-500/15 hover:text-primary-500 transition-colors"
+                    >
+                      <Icon name="upload" size={13} /> Carregar imagem
+                    </button>
+                    <input
+                      ref={fileRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleAvatar(e.target.files?.[0])}
+                    />
+                  </div>
+                </div>
               </div>
               {error && (
                 <div className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 text-red-500 text-sm border border-red-500/30">
@@ -223,6 +367,51 @@ export default function AdminUsers() {
                 {editing ? 'Salvar' : 'Criar usuário'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal favoritos */}
+      {viewing && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in" role="dialog" aria-modal="true">
+          <div className="absolute inset-0 bg-dark-950/80 backdrop-blur-sm" onClick={() => setViewing(null)} />
+          <div className="relative w-full max-w-lg rounded-2xl bg-white dark:bg-dark-900 p-6 animate-scale-in shadow-2xl">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-lg font-display font-bold">Favoritos de {viewing.name}</h3>
+              <button onClick={() => setViewing(null)} className="p-2 rounded-lg hover:bg-dark-100 dark:hover:bg-dark-800">
+                <Icon name="x" />
+              </button>
+            </div>
+            {viewingFavorites.length === 0 ? (
+              <div className="py-10 text-center">
+                <Icon name="list" size={38} className="mx-auto text-dark-300 dark:text-dark-600" />
+                <p className="mt-3 font-semibold">Lista vazia</p>
+                <p className="text-sm text-dark-500 dark:text-dark-400">Este usuário ainda não adicionou favoritos.</p>
+              </div>
+            ) : (
+              <ul className="max-h-80 overflow-y-auto divide-y divide-dark-100 dark:divide-dark-800">
+                {viewingFavorites.map((t) => (
+                  <li key={t.id} className="flex items-center gap-3 py-2.5">
+                    <img
+                      src={t.poster || posterPlaceholder(t.title, t.title)}
+                      alt={t.title}
+                      className="w-10 h-14 rounded-lg object-cover shrink-0"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-sm truncate">{t.title}</p>
+                      <p className="text-xs text-dark-400">{t.type === 'movie' ? 'Filme' : 'Série'}</p>
+                    </div>
+                    <button
+                      onClick={() => removeFavorite(t.id)}
+                      className="p-2 rounded-lg text-dark-400 hover:text-red-500 hover:bg-red-500/10 transition-all"
+                      title="Remover dos favoritos"
+                    >
+                      <Icon name="trash" size={15} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
       )}

@@ -16,11 +16,12 @@ const NAV = [
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
+  const [userMenu, setUserMenu] = useState(false)
   const [query, setQuery] = useState('')
   const navigate = useNavigate()
   const { myList, settings } = useData()
   const { theme, toggleTheme } = useTheme()
-  const { user, isAuthenticated } = useAuth()
+  const { user, isAuthenticated, logout } = useAuth()
 
   const submit = (e) => {
     e.preventDefault()
@@ -28,6 +29,12 @@ export default function Navbar() {
     setOpen(false)
     navigate(`/busca?q=${encodeURIComponent(query.trim())}`)
     setQuery('')
+  }
+
+  const handleLogout = () => {
+    setUserMenu(false)
+    logout()
+    navigate('/')
   }
 
   return (
@@ -90,14 +97,47 @@ export default function Navbar() {
             </button>
 
             {isAuthenticated && (
-              <span className="flex items-center">
-                <img
-                  src={user?.avatar || avatarPlaceholder(user?.name || 'Usuário')}
-                  alt={user?.name}
-                  title={user?.name}
-                  className="w-9 h-9 rounded-full object-cover ring-2 ring-primary-500/60"
-                />
-              </span>
+              <div className="relative">
+                <button
+                  onClick={() => setUserMenu((v) => !v)}
+                  className={`rounded-full transition-all ${userMenu ? 'ring-2 ring-primary-500' : ''}`}
+                  aria-label="Menu do usuário"
+                >
+                  <img
+                    src={user?.avatar || avatarPlaceholder(user?.name || 'Usuário')}
+                    alt={user?.name}
+                    title={user?.name}
+                    className="w-9 h-9 rounded-full object-cover ring-2 ring-primary-500/60"
+                  />
+                </button>
+                {userMenu && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setUserMenu(false)} />
+                    <div className="absolute right-0 mt-2 z-20 w-52 rounded-xl bg-white dark:bg-dark-900 shadow-2xl ring-1 ring-dark-200 dark:ring-dark-700 overflow-hidden animate-scale-in">
+                      <div className="px-4 py-3 border-b border-dark-100 dark:border-dark-800">
+                        <p className="text-sm font-semibold truncate">{user?.name}</p>
+                        <p className="text-xs text-dark-400 truncate">@{user?.username}</p>
+                      </div>
+                      <Link
+                        to="/minha-lista"
+                        onClick={() => setUserMenu(false)}
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-dark-50 dark:hover:bg-dark-800 transition-colors"
+                      >
+                        <Icon name="list" size={15} /> Minha lista
+                        {myList.length > 0 && (
+                          <span className="ml-auto px-1.5 py-0.5 rounded-full text-[10px] font-bold text-white bg-primary-500">{myList.length}</span>
+                        )}
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-red-500/10 transition-colors"
+                      >
+                        <Icon name="logout" size={15} /> Sair
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
             )}
 
             <Link

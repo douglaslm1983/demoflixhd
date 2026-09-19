@@ -2,15 +2,22 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Icon from './Icon'
 import { useData } from '../context/DataContext'
+import { useAuth } from '../context/AuthContext'
 import { posterPlaceholder } from '../utils/placeholder'
 
 export default function PosterCard({ title, onMore, width = 'w-40 md:w-48' }) {
   const { toggleMyList, isInMyList } = useData()
+  const { isAuthenticated } = useAuth()
   const navigate = useNavigate()
   const [img, setImg] = useState(title.poster || posterPlaceholder(title.slug, title.title))
   const inList = isInMyList(title.id)
 
   const detail = () => navigate(`/detalhes/${title.type}/${title.id}`)
+
+  const toggle = () => {
+    if (!isAuthenticated) return navigate('/admin/login')
+    toggleMyList(title.id)
+  }
 
   return (
     <div className={`${width} shrink-0 group snap-start`}>
@@ -29,7 +36,7 @@ export default function PosterCard({ title, onMore, width = 'w-40 md:w-48' }) {
         </div>
 
         <button
-          onClick={() => toggleMyList(title.id)}
+          onClick={toggle}
           className={`absolute top-2 right-2 w-8 h-8 grid place-items-center rounded-full backdrop-blur transition-all ${
             inList
               ? 'bg-primary-500 text-white'
