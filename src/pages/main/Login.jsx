@@ -5,7 +5,6 @@ import { useData } from '../../context/DataContext'
 import { useTheme } from '../../context/ThemeContext'
 import Icon from '../../components/Icon'
 import Logo from '../../components/Logo'
-import { avatarPlaceholder } from '../../utils/placeholder'
 
 export default function Login() {
   const { login } = useAuth()
@@ -122,27 +121,6 @@ export default function Login() {
               <Icon name="user-plus" size={15} /> Criar conta grátis
             </Link>
           </p>
-
-          <div className="mt-8 p-4 rounded-2xl border border-dashed border-dark-300 dark:border-dark-700 bg-dark-50 dark:bg-dark-900/50">
-            <p className="text-xs font-semibold uppercase tracking-wider text-dark-400 mb-2 flex items-center gap-1.5">
-              <Icon name="eye" size={13} /> Contas de demonstração
-            </p>
-            <div className="space-y-2">
-              {[
-                { login: 'admin', pass: 'admin123', role: 'Admin (painel)', color: 'bg-primary-500/15 text-primary-500' },
-                { login: 'user', pass: 'user123', role: 'Usuário', color: 'bg-blue-500/15 text-blue-500' },
-              ].map((c) => (
-                <div key={c.login} className="flex items-center justify-between gap-2 text-sm flex-wrap">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <img src={avatarPlaceholder(c.login)} alt="" className="w-7 h-7 rounded-full hidden sm:block" />
-                    <span className="truncate font-medium">{c.login}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${c.color}`}>{c.role}</span>
-                  </div>
-                  <code className="text-xs text-dark-400 select-all">{c.pass}</code>
-                </div>
-              ))}
-            </div>
-          </div>
 
           <p className="mt-6 text-center text-sm text-dark-500 dark:text-dark-400">
             <Link to="/" className="inline-flex items-center gap-1.5 hover:text-primary-500 font-medium">
