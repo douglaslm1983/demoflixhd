@@ -108,16 +108,14 @@ function Hero({ titles }) {
 }
 
 export default function Home() {
-  const { featured, movies, series, titles, myListTitles } = useData()
+  const { featured, movies, titles, myListTitles } = useData()
   const [modalTitle, setModalTitle] = useState(null)
   const [watchTitle, setWatchTitle] = useState(null)
 
   const topMovies = [...movies].sort((a, b) => b.rating - a.rating).slice(0, 12)
-  const topSeries = [...series].sort((a, b) => b.rating - a.rating).slice(0, 12)
   const recent = [...titles]
     .sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt))
     .slice(0, 12)
-  const trending = [...titles].sort((a, b) => b.rating - a.rating).slice(0, 14)
 
   return (
     <div>
@@ -133,29 +131,6 @@ export default function Home() {
             onMore={setModalTitle}
           />
         )}
-
-        <Carousel
-          title="Tendências da semana"
-          subtitle="Os mais bem avaliados do catálogo"
-          items={trending}
-          onMore={setModalTitle}
-        />
-
-        <Carousel
-          title="Filmes em alta"
-          subtitle="Os melhores filmes escolhidos a dedo"
-          link="/filmes"
-          items={topMovies}
-          onMore={setModalTitle}
-        />
-
-        <Carousel
-          title="Séries do momento"
-          subtitle="Maratonas imperdíveis"
-          link="/series"
-          items={topSeries}
-          onMore={setModalTitle}
-        />
 
         <Carousel
           title="Recém-adicionados"
