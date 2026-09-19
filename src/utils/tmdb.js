@@ -104,6 +104,8 @@ export function toTitle(item, media, extra = {}) {
     quality: 'HD',
     ageRating: 'L',
     featured: false,
+    streamType: 'embed',
+    streamUrl: '',
     poster: tmdbImage(item.poster_path, 'w500'),
     backdrop: tmdbImage(item.backdrop_path, 'w1280'),
     addedAt: new Date().toISOString(),

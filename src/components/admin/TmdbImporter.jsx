@@ -4,14 +4,15 @@ import { useData } from '../../context/DataContext'
 import { tmdbSearch, tmdbPopular, tmdbDetails, toTitle, tmdbImage } from '../../utils/tmdb'
 import { posterPlaceholder } from '../../utils/placeholder'
 
-async function withDetails(key, media, item, streamUrl) {
+async function withDetails(key, media, item, streamType, streamUrl) {
   const d = await tmdbDetails(key, media, item.id)
-  return toTitle(d, media, streamUrl ? { streamUrl } : {})
+  return toTitle(d, media, streamType && streamUrl ? { streamType, streamUrl } : {})
 }
 
 export default function TmdbImporter({ apiKey }) {
   const { titles, addTitle } = useData()
   const [tab, setTab] = useState('search')
+  const [streamType, setStreamType] = useState('embed')
   const [streamUrlTemplate, setStreamUrlTemplate] = useState('')
 
   const existing = useMemo(() => new Set(titles.map((t) => `${t.tmdb?.media}:${t.tmdb?.id}`)), [titles])
@@ -19,6 +20,8 @@ export default function TmdbImporter({ apiKey }) {
     (media, id) => existing.has(`${media}:${id}`),
     [existing],
   )
+
+  const streamProps = { streamType, streamUrl: streamUrlTemplate }
 
   return (
     <div className="card p-6 animate-slide-up">
@@ -45,15 +48,43 @@ export default function TmdbImporter({ apiKey }) {
         <label className="block text-sm font-medium mb-1.5">
           URL de reprodução (opcional) <span className="text-dark-400 font-normal">— aplicada aos títulos importados</span>
         </label>
+        <div className="grid grid-cols-2 gap-2 mb-2 sm:grid-cols-4">
+          {[
+            { key: 'embed', label: 'Embed' },
+            { key: 'iframe', label: 'Iframe' },
+            { key: 'direct', label: 'Link direto' },
+            { key: 'webtorrent', label: 'WebTorrent' },
+          ].map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() => setStreamType(t.key)}
+              className={`px-2.5 py-2 rounded-lg border text-sm font-semibold transition-all ${
+                streamType === t.key
+                  ? 'border-primary-500 bg-primary-500/10 text-primary-500'
+                  : 'border-dark-200 dark:border-dark-700 text-dark-500 dark:text-dark-400 hover:border-primary-400'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
         <input
           value={streamUrlTemplate}
           onChange={(e) => setStreamUrlTemplate(e.target.value)}
-          placeholder="Ex.: https://exemplo.com/video/{season}/{episode} ou trailer do YouTube"
+          placeholder={
+            streamType === 'direct'
+              ? 'Ex.: https://exemplo.com/video.mp4'
+              : streamType === 'webtorrent'
+                ? 'Ex.: magnet:?xt=urn:btih:... ou https://exemplo.com/arquivo.torrent'
+                : 'Ex.: https://exemplo.com/embed/{season}/{episode} ou trailer do YouTube'
+          }
           className="input"
         />
         <p className="mt-1 text-xs text-dark-400">
-          Use <code className="px-1 py-0.5 rounded bg-dark-100 dark:bg-dark-800">{'{season}'}</code> e{' '}
-          <code className="px-1 py-0.5 rounded bg-dark-100 dark:bg-dark-800">{'{episode}'}</code> para séries.
+          {streamType === 'embed' || streamType === 'iframe'
+            ? 'Use {season}/{episode} para séries trocarem episódios no player.'
+            : 'Tipo aplicado a todos os títulos importados.'}
         </p>
       </div>
 
@@ -77,15 +108,15 @@ export default function TmdbImporter({ apiKey }) {
       </div>
 
       {tab === 'search' ? (
-        <SearchTab apiKey={apiKey} already={already} addTitle={addTitle} streamUrl={streamUrlTemplate} />
+        <SearchTab apiKey={apiKey} already={already} addTitle={addTitle} streamProps={streamProps} />
       ) : (
-        <BulkTab apiKey={apiKey} already={already} addTitle={addTitle} streamUrl={streamUrlTemplate} />
+        <BulkTab apiKey={apiKey} already={already} addTitle={addTitle} streamProps={streamProps} />
       )}
     </div>
   )
 }
 
-function SearchTab({ apiKey, already, addTitle, streamUrl }) {
+function SearchTab({ apiKey, already, addTitle, streamProps }) {
   const [media, setMedia] = useState('movie')
   const [q, setQ] = useState('')
   const [results, setResults] = useState([])
@@ -121,7 +152,7 @@ function SearchTab({ apiKey, already, addTitle, streamUrl }) {
     }
     setBusyId(item.id)
     try {
-      const entry = await withDetails(apiKey, media, item, streamUrl)
+      const entry = await withDetails(apiKey, media, item, streamProps.streamType, streamProps.streamUrl)
       addTitle(entry)
       notify(`"${entry.title}" adicionado ao catálogo!`)
     } catch (err) {
@@ -227,7 +258,7 @@ function SearchTab({ apiKey, already, addTitle, streamUrl }) {
   )
 }
 
-function BulkTab({ apiKey, already, addTitle, streamUrl }) {
+function BulkTab({ apiKey, already, addTitle, streamProps }) {
   const [media, setMedia] = useState('movie')
   const [page, setPage] = useState(1)
   const [items, setItems] = useState([])
@@ -289,7 +320,7 @@ function BulkTab({ apiKey, already, addTitle, streamUrl }) {
     let fail = 0
     for (const item of pending) {
       try {
-        const entry = await withDetails(apiKey, media, item, streamUrl)
+        const entry = await withDetails(apiKey, media, item, streamProps.streamType, streamProps.streamUrl)
         addTitle(entry)
         ok += 1
       } catch {

@@ -21,6 +21,7 @@ const INITIAL = {
   featured: false,
   poster: '',
   backdrop: '',
+  streamType: 'embed',
   streamUrl: '',
 }
 
@@ -52,6 +53,7 @@ export default function TitleFormModal({ type = 'movie', initial, onClose, onSav
       featured: !!initial.featured,
       poster: initial.poster || '',
       backdrop: initial.backdrop || '',
+      streamType: initial.streamType || 'embed',
       streamUrl: initial.streamUrl || '',
     }
   })
@@ -228,9 +230,33 @@ export default function TitleFormModal({ type = 'movie', initial, onClose, onSav
 
             {fieldGroup('URL de reprodução', (
               <div>
-                <input className={inputCls} value={form.streamUrl} onChange={(e) => set({ streamUrl: e.target.value })} placeholder="Ex.: https://www.youtube.com/embed/xxxx ou {season}/{episode}" />
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 mb-2">
+                  {[
+                    { key: 'embed', label: 'Embed', desc: 'player externo' },
+                    { key: 'iframe', label: 'Iframe', desc: 'página em iframe' },
+                    { key: 'direct', label: 'Link direto', desc: 'mp4/webm' },
+                    { key: 'webtorrent', label: 'WebTorrent', desc: 'magnet/.torrent' },
+                  ].map((t) => (
+                    <button
+                      key={t.key}
+                      type="button"
+                      onClick={() => set({ streamType: t.key })}
+                      className={`p-2.5 rounded-xl border text-sm font-semibold transition-all ${
+                        form.streamType === t.key
+                          ? 'border-primary-500 bg-primary-500/10 text-primary-500'
+                          : 'border-dark-200 dark:border-dark-700 text-dark-500 dark:text-dark-400 hover:border-primary-400'
+                      }`}
+                    >
+                      {t.label}
+                      <span className={`block text-[10px] font-normal ${form.streamType === t.key ? 'text-primary-500/70' : 'text-dark-400'}`}>
+                        {t.desc}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <input className={inputCls} value={form.streamUrl} onChange={(e) => set({ streamUrl: e.target.value })} placeholder="Ex.: https://www.youtube.com/embed/xxxx ou magnet:?... ou /videos/arquivo.mp4" />
                 <p className="mt-1.5 text-xs text-dark-400">
-                  Link do vídeo/trailer. Para séries use as marcas <code className="px-1 py-0.5 rounded bg-dark-100 dark:bg-dark-800">{'{season}'}</code> e <code className="px-1 py-0.5 rounded bg-dark-100 dark:bg-dark-800">{'{episode}'}</code> na URL para troca de episódios no player.
+                  Para séries use as marcas <code className="px-1 py-0.5 rounded bg-dark-100 dark:bg-dark-800">{'{season}'}</code> e <code className="px-1 py-0.5 rounded bg-dark-100 dark:bg-dark-800">{'{episode}'}</code> na URL para troca de episódios no player.
                 </p>
               </div>
             ), true)}
