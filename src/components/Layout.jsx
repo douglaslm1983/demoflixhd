@@ -26,9 +26,6 @@ export default function Layout() {
             <p className="mt-3 text-dark-500 dark:text-dark-400 max-w-md">
               Não há conteúdo disponível no momento. Volte em breve — filmes e séries chegarão em breve!
             </p>
-            <p className="mt-6 px-4 py-2 rounded-full bg-dark-100 dark:bg-dark-800 text-xs text-dark-500 dark:text-dark-400">
-              Administrador: adicione títulos pelo painel para liberar o site.
-            </p>
           </div>
         ) : (
           <Outlet />
