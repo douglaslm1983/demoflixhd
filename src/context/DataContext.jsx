@@ -79,8 +79,19 @@ export function DataProvider({ children }) {
     setMyList((prev) => prev.filter((x) => x !== id))
   }, [])
 
+  const deleteMany = useCallback((ids) => {
+    const set = new Set(ids)
+    setTitles((prev) => prev.filter((t) => !set.has(t.id)))
+    setMyList((prev) => prev.filter((x) => !set.has(x)))
+  }, [])
+
   const resetCatalog = useCallback(() => {
     setTitles(SEED_TITLES)
+  }, [])
+
+  const clearCatalog = useCallback(() => {
+    setTitles([])
+    setMyList([])
   }, [])
 
   const toggleMyList = useCallback((id) => {
@@ -110,7 +121,9 @@ export function DataProvider({ children }) {
     addTitle,
     updateTitle,
     deleteTitle,
+    deleteMany,
     resetCatalog,
+    clearCatalog,
     toggleMyList,
     isInMyList,
     updateSettings,

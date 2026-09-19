@@ -5,10 +5,12 @@ import { posterPlaceholder } from '../../utils/placeholder'
 import TitleFormModal from './TitleFormModal'
 
 export default function AdminTitlesTable({ type }) {
-  const { titles, updateTitle, deleteTitle } = useData()
+  const { titles, updateTitle, deleteTitle, deleteMany } = useData()
   const [q, setQ] = useState('')
   const [editing, setEditing] = useState(null)
   const [deleting, setDeleting] = useState(null)
+  const [bulkDeleting, setBulkDeleting] = useState(false)
+  const [selected, setSelected] = useState([])
   const [openForm, setOpenForm] = useState(false)
   const [toast, setToast] = useState('')
 
@@ -35,6 +37,29 @@ export default function AdminTitlesTable({ type }) {
     setDeleting(null)
   }
 
+  const toggleSelect = (id) => {
+    setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+  }
+
+  const toggleAll = () => {
+    if (selected.length === items.length && items.length > 0) {
+      setSelected([])
+    } else {
+      setSelected(items.map((t) => t.id))
+    }
+  }
+
+  const confirmBulk = () => {
+    if (!bulkDeleting) return
+    const count = bulkDeleting.length
+    deleteMany(bulkDeleting)
+    setSelected((prev) => prev.filter((id) => !bulkDeleting.includes(id)))
+    notify(`${count} ${type === 'movie' ? 'filme' : 'série'}${count !== 1 ? 's' : ''} removido${count !== 1 ? 's' : ''}.`)
+    setBulkDeleting(false)
+  }
+
+  const allSelected = items.length > 0 && items.every((t) => selected.includes(t.id))
+
   return (
     <div>
       {/* Barra de ações */}
@@ -50,12 +75,36 @@ export default function AdminTitlesTable({ type }) {
             className="input pl-9"
           />
         </div>
-        <button
-          onClick={() => { setOpenForm(true); setEditing(null) }}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 transition-colors"
-        >
-          <Icon name="plus" size={16} /> Adicionar {type === 'movie' ? 'filme' : 'série'}
-        </button>
+        <div className="flex items-center gap-2">
+          {selected.length > 0 && (
+            <>
+              <span className="hidden sm:block text-xs text-dark-500 dark:text-dark-400 font-medium">
+                {selected.length} selecionado{selected.length !== 1 && 's'}
+              </span>
+              <button
+                onClick={() => setBulkDeleting([...selected])}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-500/10 text-red-500 text-sm font-semibold hover:bg-red-500/20 transition-colors"
+              >
+                <Icon name="trash" size={15} /> Excluir selecionados
+              </button>
+            </>
+          )}
+          {selected.length > 0 && (
+            <button
+              onClick={() => setSelected([])}
+              className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-medium border border-dark-300 dark:border-dark-700 hover:border-primary-500 hover:text-primary-500 transition-colors"
+              title="Limpar seleção"
+            >
+              <Icon name="x" size={14} />
+            </button>
+          )}
+          <button
+            onClick={() => { setOpenForm(true); setEditing(null) }}
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 transition-colors"
+          >
+            <Icon name="plus" size={16} /> Adicionar {type === 'movie' ? 'filme' : 'série'}
+          </button>
+        </div>
       </div>
 
       {/* Tabela */}
@@ -64,6 +113,15 @@ export default function AdminTitlesTable({ type }) {
           <table className="w-full text-sm text-left">
             <thead>
               <tr className="bg-dark-50 dark:bg-dark-800/50 text-dark-500 dark:text-dark-400 text-xs uppercase tracking-wider">
+                <th className="px-4 py-3 w-8">
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    onChange={toggleAll}
+                    className="w-4 h-4 accent-primary-500"
+                    aria-label="Selecionar todos"
+                  />
+                </th>
                 <th className="px-4 py-3 font-semibold">Título</th>
                 <th className="px-4 py-3 font-semibold hidden md:table-cell">Gêneros</th>
                 <th className="px-4 py-3 font-semibold hidden sm:table-cell">Ano</th>
@@ -75,7 +133,16 @@ export default function AdminTitlesTable({ type }) {
             </thead>
             <tbody className="divide-y divide-dark-100 dark:divide-dark-800">
               {items.map((t) => (
-                <tr key={t.id} className="hover:bg-dark-50 dark:hover:bg-dark-800/50 transition-colors">
+                <tr key={t.id} className={`transition-colors ${selected.includes(t.id) ? 'bg-primary-500/5' : 'hover:bg-dark-50 dark:hover:bg-dark-800/50'}`}>
+                  <td className="px-4 py-3">
+                    <input
+                      type="checkbox"
+                      checked={selected.includes(t.id)}
+                      onChange={() => toggleSelect(t.id)}
+                      className="w-4 h-4 accent-primary-500"
+                      aria-label={`Selecionar ${t.title}`}
+                    />
+                  </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3 min-w-0">
                       <img src={t.poster || posterPlaceholder(t.slug, t.title)} alt={t.title} className="w-9 h-13 h-[52px] rounded object-cover shrink-0" />
@@ -190,6 +257,30 @@ export default function AdminTitlesTable({ type }) {
               </button>
               <button onClick={confirmDelete} className="px-4 py-2.5 rounded-xl bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors">
                 Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal excluir em massa */}
+      {bulkDeleting && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in" role="alertdialog" aria-modal="true">
+          <div className="absolute inset-0 bg-dark-950/80 backdrop-blur-sm" onClick={() => setBulkDeleting(false)} />
+          <div className="relative w-full max-w-md rounded-2xl bg-white dark:bg-dark-900 p-6 text-center animate-scale-in shadow-2xl">
+            <span className="inline-grid place-items-center w-14 h-14 rounded-full bg-red-500/10 text-red-500 mx-auto">
+              <Icon name="trash" size={26} />
+            </span>
+            <h3 className="mt-4 text-lg font-display font-bold">Excluir {bulkDeleting.length} {type === 'movie' ? 'filme' : 'série'}{bulkDeleting.length !== 1 && 's'}?</h3>
+            <p className="mt-2 text-sm text-dark-500 dark:text-dark-400">
+              Os títulos selecionados serão removidos permanentemente do catálogo e da minha lista dos usuários. Esta ação não pode ser desfeita.
+            </p>
+            <div className="mt-6 grid grid-cols-2 gap-3">
+              <button onClick={() => setBulkDeleting(false)} className="px-4 py-2.5 rounded-xl border border-dark-300 dark:border-dark-700 font-medium hover:border-primary-500 hover:text-primary-500 transition-colors">
+                Cancelar
+              </button>
+              <button onClick={confirmBulk} className="px-4 py-2.5 rounded-xl bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors">
+                Excluir tudo
               </button>
             </div>
           </div>

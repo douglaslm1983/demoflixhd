@@ -6,7 +6,7 @@ import TmdbImporter from '../../components/admin/TmdbImporter'
 import { tmdbRequest } from '../../utils/tmdb'
 
 export default function AdminSettings() {
-  const { settings, updateSettings, resetCatalog, titles, movies, series } = useData()
+  const { settings, updateSettings, resetCatalog, clearCatalog, titles, movies, series } = useData()
   const { theme, setTheme } = useTheme()
   const [form, setForm] = useState({
     siteName: settings.siteName,
@@ -218,17 +218,30 @@ export default function AdminSettings() {
           <p className="text-sm text-dark-500 dark:text-dark-400 mb-4">
             {titles.length} títulos no total: {movies.length} filmes e {series.length} séries.
           </p>
-          <button
-            onClick={() => {
-              if (window.confirm('Restaurar o catálogo original? Todas as adições e edições serão perdidas.')) {
-                resetCatalog()
-                window.location.href = '/admin'
-              }
-            }}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-500/10 text-red-500 text-sm font-semibold hover:bg-red-500/20 transition-colors"
-          >
-            <Icon name="trash" size={16} /> Restaurar catálogo padrão
-          </button>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={() => {
+                if (window.confirm('Restaurar o catálogo original? Todas as adições e edições serão perdidas.')) {
+                  resetCatalog()
+                  window.location.href = '/admin'
+                }
+              }}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-500/10 text-red-500 text-sm font-semibold hover:bg-red-500/20 transition-colors"
+            >
+              <Icon name="trash" size={16} /> Restaurar catálogo padrão
+            </button>
+            <button
+              onClick={() => {
+                if (window.confirm('Excluir TODO o conteúdo? Todos os filmes e séries serão removidos permanentemente, incluindo a minha lista dos usuários. Esta ação não pode ser desfeita.')) {
+                  clearCatalog()
+                  window.location.href = '/admin'
+                }
+              }}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors"
+            >
+              <Icon name="trash" size={16} /> Excluir todo o conteúdo
+            </button>
+          </div>
         </section>
       </div>
     </div>
