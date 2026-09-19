@@ -11,38 +11,86 @@ const genreMapById = {
   80: 'Crime',
   99: 'Documentário',
   18: 'Drama',
-  10751: 'Família',
+  10751: 'Aventura',
   14: 'Fantasia',
   36: 'História',
   27: 'Terror',
-  10402: 'Música',
+  10402: 'Drama',
   9648: 'Mistério',
   10749: 'Romance',
   878: 'Ficção Científica',
-  10770: 'Programa de TV',
+  10770: 'Drama',
   53: 'Suspense',
-  10752: 'Guerra',
-  37: 'Faroeste',
+  10752: 'Ação',
+  37: 'Aventura',
+  10759: 'Ação',
+  10762: 'Animação',
+  10763: 'Documentário',
+  10764: 'Documentário',
+  10765: 'Ficção Científica',
+  10766: 'Drama',
+  10767: 'Drama',
+  10768: 'Ação',
 }
 
 const accentFree = (s = '') => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
 
-function mapGenre(name = '') {
-  const n = accentFree(name)
-  const found = GENRES.find((g) => accentFree(g) === n)
-  return found || name
+const TMDB_NAME_MAP = {
+  'familia': 'Aventura',
+  'musica': 'Drama',
+  'guerra': 'Ação',
+  'faroeste': 'Aventura',
+  'programa de tv': 'Drama',
+  'TV Movie': 'Drama',
+  'novela': 'Drama',
+  'talk show': 'Drama',
+  'noticias': 'Documentário',
+  'reality': 'Documentário',
+  'criancas': 'Animação',
+  'kids': 'Animação',
+  'acao e aventura': 'Ação',
+  'ficcao cientifica e fantasia': 'Ficção Científica',
+  'guerra e politica': 'Ação',
+  'soap': 'Drama',
+  'sobrenatural': 'Fantasia',
+  'mistério': 'Mistério',
+  'drama dacomedia': 'Comédia',
+  'misterio': 'Mistério',
+  'crime': 'Crime',
+  'terror': 'Terror',
+  'suspense': 'Suspense',
+  'thriller': 'Suspense',
+  'romance': 'Romance',
+  'comedia': 'Comédia',
+  'animacao': 'Animação',
+  'documentario': 'Documentário',
+  'aventura': 'Aventura',
+  'acao': 'Ação',
+  'drama': 'Drama',
+  'fantasia': 'Fantasia',
+  'ficcao cientifica': 'Ficção Científica',
+  'historia': 'História',
+  'misterio_': 'Mistério',
 }
 
-export function mapGenres(ids = [], names = []) {
+function mapGenre(name = '') {
+  const n = accentFree(name)
+  const direct = GENRES.find((g) => accentFree(g) === n)
+  if (direct) return direct
+  return TMDB_NAME_MAP[n] || ''
+}
+
+function addGenre(acc, label) {
+  if (!label) return
+  const key = accentFree(label)
+  if (!acc.some((g) => accentFree(g) === key)) acc.push(label)
+}
+
+export function mapGenres(item = {}) {
   const acc = []
-  ids.forEach((id) => {
-    const label = genreMapById[id]
-    if (label && !acc.includes(label)) acc.push(label)
-  })
-  names.forEach((n) => {
-    const label = mapGenre(n)
-    if (label && !acc.includes(label)) acc.push(label)
-  })
+  const ids = item.genre_ids || []
+  const names = (item.genres || []).map((g) => g.name || '')
+  ;[...ids.map((id) => genreMapById[id] || ''), ...names.map(mapGenre)].forEach((label) => addGenre(acc, label))
   return acc
 }
 
@@ -86,7 +134,7 @@ function summary(item, media) {
     originalTitle: originalTitle || title || '',
     slug: slugify(title || originalTitle || ''),
     year: Number(String(date || '').slice(0, 4)) || new Date().getFullYear(),
-    genres: mapGenres(item.genre_ids || [], []),
+    genres: mapGenres(item),
   }
 }
 
