@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useData } from '../../context/DataContext'
 import { useTheme } from '../../context/ThemeContext'
 import Icon from '../../components/Icon'
+import TmdbImporter from '../../components/admin/TmdbImporter'
+import { tmdbRequest } from '../../utils/tmdb'
 
 export default function AdminSettings() {
   const { settings, updateSettings, resetCatalog, titles, movies, series } = useData()
@@ -12,6 +14,33 @@ export default function AdminSettings() {
     maintenance: settings.maintenance,
   })
   const [saved, setSaved] = useState(false)
+  const [tmdbKey, setTmdbKey] = useState(settings.tmdbKey || '')
+  const [showKey, setShowKey] = useState(false)
+  const [testing, setTesting] = useState(false)
+  const [testMsg, setTestMsg] = useState(null)
+  const [keySaved, setKeySaved] = useState(false)
+
+  const saveKey = async (e) => {
+    e.preventDefault()
+    const key = tmdbKey.trim()
+    if (!key) {
+      setTestMsg({ ok: false, text: 'Informe a chave antes de testar.' })
+      return
+    }
+    setTesting(true)
+    setTestMsg(null)
+    try {
+      await tmdbRequest(key, '/configuration')
+      updateSettings({ tmdbKey: key })
+      setTestMsg({ ok: true, text: 'Conexão com o TMDB OK! Chave salva.' })
+      setKeySaved(true)
+      setTimeout(() => setKeySaved(false), 2500)
+    } catch (err) {
+      setTestMsg({ ok: false, text: err.message || 'Falha ao conectar com o TMDB.' })
+    } finally {
+      setTesting(false)
+    }
+  }
 
   const save = (e) => {
     e.preventDefault()
@@ -109,6 +138,76 @@ export default function AdminSettings() {
               </button>
             </div>
           </form>
+        </section>
+
+        {/* TMDB */}
+        <section className="card p-6 animate-slide-up">
+          <h2 className="text-lg font-display font-bold flex items-center gap-2 mb-1">
+            <Icon name="upload" size={18} className="text-primary-500" /> Integração TMDB
+          </h2>
+          <p className="text-sm text-dark-500 dark:text-dark-400 mb-4">
+            Adicione conteúdo ao catálogo em massa ou manualmente usando o TMDB.
+          </p>
+          <form onSubmit={saveKey} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Chave da API (v3 auth)</label>
+              <div className="relative">
+                <input
+                  type={showKey ? 'text' : 'password'}
+                  className="input pr-11"
+                  value={tmdbKey}
+                  onChange={(e) => setTmdbKey(e.target.value)}
+                  placeholder="Cole sua chave da API TMDB"
+                  autoComplete="off"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowKey((s) => !s)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-dark-400 hover:text-dark-900 dark:hover:text-white transition-colors"
+                  aria-label={showKey ? 'Ocultar chave' : 'Mostrar chave'}
+                >
+                  <Icon name="eye" size={17} />
+                </button>
+              </div>
+              <p className="mt-1.5 text-xs text-dark-400">
+                Obtenha gratuitamente em{' '}
+                <a
+                  href="https://www.themoviedb.org/settings/api"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-primary-500 hover:underline"
+                >
+                  themoviedb.org/settings/api
+                </a>
+                .
+              </p>
+            </div>
+            {testMsg && (
+              <p className={`text-sm font-medium ${testMsg.ok ? 'text-emerald-500' : 'text-red-500'}`}>
+                {testMsg.text}
+              </p>
+            )}
+            <div className="flex items-center gap-3 justify-end">
+              {keySaved && (
+                <span className="inline-flex items-center gap-1.5 text-sm text-emerald-500 font-medium animate-slide-down">
+                  <Icon name="check" size={15} /> Chave salva!
+                </span>
+              )}
+              <button
+                type="submit"
+                disabled={testing}
+                className="px-6 py-2.5 rounded-xl bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 transition-colors disabled:opacity-50 inline-flex items-center gap-2"
+              >
+                <Icon name="check" size={15} /> {testing ? 'Testando...' : 'Testar e salvar'}
+              </button>
+            </div>
+          </form>
+
+          {settings.tmdbKey && (
+            <div className="mt-6 pt-6 border-t border-dark-100 dark:border-dark-800">
+              <TmdbImporter apiKey={settings.tmdbKey} />
+            </div>
+          )}
         </section>
 
         {/* Catálogo */}

@@ -438,6 +438,7 @@ export const DEFAULT_SETTINGS = {
   siteName: 'DemoFlix HD',
   tagline: 'Filmes, séries e muito mais em alta definição.',
   maintenance: false,
+  tmdbKey: '',
 }
 
 export const uid = (prefix = 't') => `${prefix}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
