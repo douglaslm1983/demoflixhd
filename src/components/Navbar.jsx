@@ -89,31 +89,15 @@ export default function Navbar() {
               <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={20} />
             </button>
 
-            {isAuthenticated ? (
-              <Link
-                to="/admin"
-                className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full hover:bg-dark-100 dark:hover:bg-dark-800 transition-colors"
-                title="Painel administrativo"
-              >
+            {isAuthenticated && (
+              <span className="flex items-center">
                 <img
                   src={user?.avatar || avatarPlaceholder(user?.name || 'Usuário')}
                   alt={user?.name}
+                  title={user?.name}
                   className="w-9 h-9 rounded-full object-cover ring-2 ring-primary-500/60"
                 />
-                {user?.role === 'admin' && (
-                  <span className="hidden sm:inline text-xs font-medium text-dark-500 dark:text-dark-400">
-                    Admin
-                  </span>
-                )}
-              </Link>
-            ) : (
-              <Link
-                to="/admin/login"
-                className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-primary-500 border border-primary-500/40 hover:bg-primary-500 hover:text-white transition-colors"
-              >
-                <Icon name="layout" size={16} />
-                Administração
-              </Link>
+              </span>
             )}
 
             <Link

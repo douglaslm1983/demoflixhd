@@ -35,13 +35,6 @@ export default function Footer() {
           </ul>
         </div>
         <div>
-          <h4 className="text-sm font-semibold mb-3">Administração</h4>
-          <ul className="space-y-2 text-sm text-dark-500 dark:text-dark-400">
-            <li><Link to="/admin/login" className="hover:text-primary-500">Entrar no painel</Link></li>
-            <li><Link to="/admin" className="hover:text-primary-500">Dashboard</Link></li>
-          </ul>
-        </div>
-        <div>
           <h4 className="text-sm font-semibold mb-3">Sobre</h4>
           <p className="text-sm text-dark-500 dark:text-dark-400 leading-relaxed">
             {settings.siteName} é um site moderno e responsivo construído com React, Vite e Tailwind
