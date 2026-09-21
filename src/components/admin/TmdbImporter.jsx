@@ -203,11 +203,11 @@ function SearchTab({ apiKey, already, addTitle, streamProps }) {
           {results.map((item) => {
             const done = already(media, item.id)
             return (
-              <div key={item.id} className="flex items-center gap-3 p-2.5 hover:bg-dark-50 dark:hover:bg-dark-800/50 transition-colors">
-                <div className="w-10 h-14 rounded shrink-0 bg-dark-100 dark:bg-dark-800 overflow-hidden">
+              <div key={item.id} className="flex items-center gap-3 p-2 hover:bg-dark-50 dark:hover:bg-dark-800/50 transition-colors">
+                <div className="w-9 h-[50px] rounded-md shrink-0 bg-dark-100 dark:bg-dark-800 overflow-hidden">
                   {item.poster_path ? (
                     <img
-                      src={tmdbImage(item.poster_path, 'w185')}
+                      src={tmdbImage(item.poster_path, 'w92')}
                       alt={item.title || item.name}
                       loading="lazy"
                       className="w-full h-full object-cover"
@@ -226,7 +226,7 @@ function SearchTab({ apiKey, already, addTitle, streamProps }) {
                 <button
                   onClick={() => importOne(item)}
                   disabled={busyId === item.id}
-                  className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                  className={`shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
                     done
                       ? 'bg-emerald-500/10 text-emerald-500 cursor-default'
                       : 'bg-primary-500 text-white hover:bg-primary-600'
@@ -410,50 +410,69 @@ function BulkTab({ apiKey, already, addTitle, streamProps }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 max-h-[460px] overflow-y-auto pr-1">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6 gap-3 max-h-[460px] overflow-y-auto pr-1">
             {items.map((item) => {
               const key = `${media}:${item.id}`
               const done = already(media, item.id)
               const checked = selected.includes(key)
+              const name = media === 'movie' ? item.title : item.name
               return (
-                <div key={item.id} className={`card overflow-hidden transition-opacity ${done ? 'opacity-60' : ''}`}>
-                  <div className="aspect-[2/3] bg-dark-100 dark:bg-dark-800">
-                    {item.poster_path ? (
-                      <img
-                        src={tmdbImage(item.poster_path, 'w342')}
-                        alt={item.title || item.name}
-                        loading="lazy"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <img src={posterPlaceholder(item.id, item.title || item.name)} alt="" className="w-full h-full object-cover" />
-                    )}
-                  </div>
-                  <div className="p-3">
-                    <p className="font-semibold text-sm truncate">{media === 'movie' ? item.title : item.name}</p>
-                    <p className="text-xs text-dark-400 inline-flex items-center gap-1">
-                      <Icon name="star" size={11} className="text-yellow-500" />
-                      {Number(item.vote_average || 0).toFixed(1)} • {String(item.release_date || item.first_air_date || '').slice(0, 4) || '-'}
-                    </p>
-                    <label className="mt-3 flex items-center gap-2 text-xs font-medium cursor-pointer">
-                      <span className="relative flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={done ? true : checked}
-                          disabled={done}
-                          onChange={() => toggle(key)}
-                          className="w-4 h-4 accent-primary-500"
+                <label
+                  key={item.id}
+                  title={name}
+                  className={`relative block rounded-lg overflow-hidden bg-dark-100 dark:bg-dark-800 select-none transition-all ${
+                    done
+                      ? 'opacity-60 cursor-default'
+                      : checked
+                        ? 'ring-2 ring-primary-500 cursor-pointer'
+                        : 'ring-1 ring-dark-100 dark:ring-dark-800 hover:ring-primary-400/60 cursor-pointer'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={done ? true : checked}
+                    disabled={done}
+                    onChange={() => toggle(key)}
+                    className="sr-only"
+                    aria-label={`Selecionar ${name}`}
+                  />
+                  <span className="block relative group">
+                    <span className="block aspect-[2/3] w-full overflow-hidden bg-dark-100 dark:bg-dark-800">
+                      {item.poster_path ? (
+                        <img
+                          src={tmdbImage(item.poster_path, 'w185')}
+                          alt={name}
+                          loading="lazy"
+                          className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
                         />
-                        {!done && (
-                          <span className="absolute left-5 whitespace-nowrap">
-                            {done ? 'Já adicionado' : checked ? 'Selecionado' : ''}
-                          </span>
-                        )}
+                      ) : (
+                        <img src={posterPlaceholder(item.id, name)} alt="" className="w-full h-full object-cover" />
+                      )}
+                    </span>
+                    <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent px-1.5 pt-6 pb-1">
+                      <span className="block text-[11px] leading-tight font-semibold text-white truncate">{name}</span>
+                      <span className="block text-[10px] text-white/80 truncate">
+                        ★ {Number(item.vote_average || 0).toFixed(1)} • {String(item.release_date || item.first_air_date || '').slice(0, 4) || '-'}
                       </span>
-                      {done ? 'Já adicionado' : checked ? 'Selecionado' : 'Marcar'}
-                    </label>
-                  </div>
-                </div>
+                    </span>
+                    {!done && (
+                      <span
+                        className={`absolute top-1.5 left-1.5 grid place-items-center w-5 h-5 rounded-md border transition-colors ${
+                          checked
+                            ? 'bg-primary-500 border-primary-500 text-white'
+                            : 'bg-black/40 border-white/40 text-white hover:bg-primary-500/80'
+                        }`}
+                      >
+                        <Icon name={checked ? 'check' : 'plus'} size={11} />
+                      </span>
+                    )}
+                    {done && (
+                      <span className="absolute top-1.5 right-1.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-emerald-500/90 text-white text-[9px] font-bold">
+                        <Icon name="check" size={9} /> Já adicionado
+                      </span>
+                    )}
+                  </span>
+                </label>
               )
             })}
           </div>
