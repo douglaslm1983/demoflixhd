@@ -1,7 +1,12 @@
 const YT_RE = /(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/)|youtu\.be\/)([\w-]{11})/
+const DIRECT_MEDIA_RE = /\.(mp4|webm|ogv|m4v|mov)$/i
 
 export function hasStreamVars(url = '') {
   return /\{season\}|\{episode\}/i.test(url)
+}
+
+export function isDirectMediaUrl(url = '') {
+  return DIRECT_MEDIA_RE.test(String(url || '').trim().replace(/[?#].*$/, ''))
 }
 
 export function resolveStreamUrl(raw = '', { season, episode } = {}) {
